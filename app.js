@@ -1,6 +1,9 @@
 const express = require('express');
 const app = express();
 
+// Express middleware to parse JSON bodies
+app.use(express.json());
+
 const usersRouter = require('./users');
 const productsRouter = require('./products');
 
