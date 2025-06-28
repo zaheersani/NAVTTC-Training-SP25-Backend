@@ -1,5 +1,8 @@
 const express = require('express'); // Import Express framework
+const jwt = require('jsonwebtoken'); // Import JSON Web Token library
 
+dotenv = require('dotenv'); // Import dotenv for environment variables
+dotenv.config(); // Load environment variables from .env file
 /**
  * Import required modules
  */
@@ -58,6 +61,50 @@ const middleware2 = (req, res, next) => {
   next();
 }
 
+app.post('/login', (req, res) => {
+  const { username, password } = req.body;
+  // Dummy authentication logic
+  if (username === 'user' && password === 'pass') {
+    const token = jwt.sign({ username: username, program: "NAVTTC" }, process.env.JWT_SECRET, { expiresIn: '1h' });
+    console.log(`Generated token: ${token}`);
+    res.json({ token });
+  }
+  else {
+    res.status(401).send({
+      error: 'Invalid credentials',
+      status: 401
+    });
+  }
+});
+
+const authToken = (req, res, next) => {
+  const token = req.headers['authorization'].split(' ')[1]; // Extract token from Authorization header
+  console.log(`Authorization header: ${token}`);
+  if (!token) {
+    return res.status(401).send({
+      error: 'No token provided',
+      status: 401
+    });
+  }
+  
+  jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
+    if (err) {
+      return res.status(500).send({
+        error: 'Failed to authenticate token',
+        status: 500
+      });
+    }
+    console.log(`Decoded token: ${JSON.stringify(decoded)}`);
+    // Save decoded information to request object
+    // req.user = decoded;
+    next();
+  });
+};
+
+app.get('/protected', authToken, (req, res) => {
+  res.send('This is a protected route');
+});
+
 // Route for GET /, uses middleware2 and middleware
 app.get('/', middleware2, middleware, (req, res, next) =>
   res.send('Hello World!')
@@ -85,6 +132,15 @@ app.use((req, res) => {
   res.status(404).send({
     error: 'Page Not Found',
     status: 404
+  });
+});
+
+app.use((err, req, res, next) => {
+  console.error(`Error occurred: ${err.message}`);
+  res.status(500).send({
+    message: err.message,
+    error: 'Internal Server Error',
+    status: 500
   });
 });
 
