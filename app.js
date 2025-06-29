@@ -1,13 +1,13 @@
 const express = require('express'); // Import Express framework
-const jwt = require('jsonwebtoken'); // Import JSON Web Token library
 
-dotenv = require('dotenv'); // Import dotenv for environment variables
-dotenv.config(); // Load environment variables from .env file
-/**
- * Import required modules
- */
+// Import required routers
 const usersRouter = require('./router/users'); // Import users router
 const productsRouter = require('./router/products'); // Import products router
+const globalRouter = require('./router/global'); // Import global router
+const authRouter = require('./router/auth'); // Import authentication router
+
+// Import middleware
+const skipauth = require('./middleware/skipauth'); // Import skip authentication middleware
 const auth = require('./middleware/auth'); // Import authentication middleware
 
 const app = express(); // Create Express app instance
@@ -33,97 +33,10 @@ app.use((req, res, next) => {
   next();
 });
 
-// Middleware to optionally skip authentication for GET /
-const skipauth = (req, res, next) => {
-  if (req.url === '/' && req.method === 'GET')
-    req.skipauth = true;
-  console.log('Skipping authentication for this route');
-  next();
-}
-
-// Mount users router with authentication middleware
-app.use('/users', auth, usersRouter);
-
-// Mount products router with skipauth and authentication middleware
-app.use('/products', skipauth, auth, productsRouter);
-
-// Middleware to modify the request URL to '/home'
-const middleware = (req, res, next) => {
-  console.log('Middleware function executed');
-  req.url = '/home'; // Change the URL to '/home'
-  next();
-}
-
-// Middleware to log execution and modified URL
-const middleware2 = (req, res, next) => {
-  console.log('Middleware function 2 executed');
-  console.log(`Modified URL: ${req.url}`);
-  next();
-}
-
-app.post('/login', (req, res) => {
-  const { username, password } = req.body;
-  // Dummy authentication logic
-  if (username === 'user' && password === 'pass') {
-    const token = jwt.sign({ username: username, program: "NAVTTC" }, process.env.JWT_SECRET, { expiresIn: '1h' });
-    console.log(`Generated token: ${token}`);
-    res.json({ token });
-  }
-  else {
-    res.status(401).send({
-      error: 'Invalid credentials',
-      status: 401
-    });
-  }
-});
-
-const authToken = (req, res, next) => {
-  const token = req.headers['authorization'].split(' ')[1]; // Extract token from Authorization header
-  console.log(`Authorization header: ${token}`);
-  if (!token) {
-    return res.status(401).send({
-      error: 'No token provided',
-      status: 401
-    });
-  }
-  
-  jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
-    if (err) {
-      return res.status(500).send({
-        error: 'Failed to authenticate token',
-        status: 500
-      });
-    }
-    console.log(`Decoded token: ${JSON.stringify(decoded)}`);
-    // Save decoded information to request object
-    // req.user = decoded;
-    next();
-  });
-};
-
-app.get('/protected', authToken, (req, res) => {
-  res.send('This is a protected route');
-});
-
-// Route for GET /, uses middleware2 and middleware
-app.get('/', middleware2, middleware, (req, res, next) =>
-  res.send('Hello World!')
-);
-
-// Route for GET /home, uses middleware
-app.get('/home', middleware, (req, res) =>
-  res.send('Home Route')
-);
-
-// Route for GET /about
-app.get('/about', (req, res) =>
-  res.send('About Route')
-);
-
-// Route for GET /contact
-app.get('/contact', (req, res) =>
-  res.send('Contact Route')
-);
+app.use('/auth', authRouter); // Mount authentication router at /auth path
+app.use('/', globalRouter); // Mount global router at root path
+app.use('/users', auth, usersRouter); // Mount users router with authentication middleware
+app.use('/products', skipauth, auth, productsRouter); // Mount products router with skipauth and authentication middleware
 
 // Catch-all route for 404 errors
 // Global Middleware
