@@ -8,10 +8,13 @@ const globalRouter = require('./router/global'); // Import global router
 const authRouter = require('./router/auth'); // Import authentication router
 const catRoutes = require('./router/catRoutes'); // Import cat routes
 const studentRoutes = require('./router/studentRoutes'); // Import student routes
+const userRoutes = require('./router/userRoutes'); // Import user routes
+const blogRoutes = require('./router/blogRoutes'); // Import blog routes
 
 // Import middleware
 const skipauth = require('./middleware/skipauth'); // Import skip authentication middleware
 const auth = require('./middleware/auth'); // Import authentication middleware
+const authUser = require('./middleware/authUser'); // Import user authentication middleware
 
 const app = express(); // Create Express app instance
 
@@ -42,6 +45,8 @@ app.use('/users', auth, usersRouter); // Mount users router with authentication 
 app.use('/products', skipauth, auth, productsRouter); // Mount products router with skipauth and authentication middleware
 app.use('/cats', catRoutes); // Mount cat routes
 app.use('/students', studentRoutes); // Mount student routes
+app.use('/user', userRoutes); // Mount user routes
+app.use('/blogs', authUser, blogRoutes); // Mount blog routes
 
 
 mongoose.connect('mongodb://localhost:27017/catdatabase', { // Connect to MongoDB
