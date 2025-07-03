@@ -1,5 +1,6 @@
 const express = require('express'); // Import Express framework
 const mongoose = require('mongoose'); // Import Mongoose for MongoDB interaction
+const cors = require('cors'); // Import CORS middleware for cross-origin requests
 
 // Import required routers
 const usersRouter = require('./router/users'); // Import users router
@@ -17,6 +18,8 @@ const auth = require('./middleware/auth'); // Import authentication middleware
 const authUser = require('./middleware/authUser'); // Import user authentication middleware
 
 const app = express(); // Create Express app instance
+
+app.use(cors()); // Use CORS middleware to allow cross-origin requests
 
 // Express middleware to parse JSON bodies
 app.use(express.json());
@@ -78,5 +81,5 @@ app.use((err, req, res, next) => {
 });
 
 // Start the server on port 3000
-app.listen(3000, () => 
+app.listen(5000, () => 
   console.log('Listening on port 3000'));
