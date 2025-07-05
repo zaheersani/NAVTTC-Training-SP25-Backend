@@ -3,6 +3,20 @@ const BlogModel = require('../models/blogModel');
 
 const router = express.Router();
 
+const authUser = require('../middleware/authUser'); // Import user authentication middleware
+
+// Get all blogs
+router.get('/all', async (req, res) => {
+    try {
+        const blogs = await BlogModel.find( {status: 'approved'} );
+        res.json(blogs);
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+});
+
+router.use(authUser); // Apply user authentication middleware to all routes in this router
+
 // Get all blogs
 router.get('/', async (req, res) => {
     try {

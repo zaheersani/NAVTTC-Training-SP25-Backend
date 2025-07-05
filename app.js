@@ -49,10 +49,10 @@ app.use('/products', skipauth, auth, productsRouter); // Mount products router w
 app.use('/cats', catRoutes); // Mount cat routes
 app.use('/students', studentRoutes); // Mount student routes
 app.use('/user', userRoutes); // Mount user routes
-app.use('/blogs', authUser, blogRoutes); // Mount blog routes
+app.use('/blogs', blogRoutes); // Mount blog routes
 
 
-mongoose.connect('mongodb://localhost:27017/catdatabase', { // Connect to MongoDB
+mongoose.connect(process.env.MONGO_URI, { // Connect to MongoDB
   useNewUrlParser: true,
   useUnifiedTopology: true
 }).then(() => {
@@ -81,5 +81,5 @@ app.use((err, req, res, next) => {
 });
 
 // Start the server on port 3000
-app.listen(5000, () => 
-  console.log('Listening on port 3000'));
+app.listen(process.env.PORT, () => 
+  console.log(`Listening on port ${process.env.PORT}`));
